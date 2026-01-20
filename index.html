@@ -3,20 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Nguyen Anh Hao Python Obfuscator</title>
+<title>Obf By Nguyen Anh Hao</title>
 
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="{{LINK:enc_link_ad9d215dc8cf}}" rel="stylesheet">
 
 <style>
 :root{
   --red:#dc2626;
-  --bg:url("https://i.imgur.com/H4kq5yd.gif");
+  --galaxy:url("{{LINK:enc_link_83c8aac57c5b}}");
 }
 *{margin:0;padding:0;box-sizing:border-box}
 
 body{
   font-family:Inter,sans-serif;
-  background:linear-gradient(rgba(15,23,42,.9),rgba(15,23,42,.9)),var(--bg) center/cover fixed;
+  background:
+    radial-gradient(circle at top,rgba(220,38,38,.15),transparent 60%),
+    linear-gradient(rgba(15,23,42,.9),rgba(15,23,42,.9)),
+    var(--galaxy) center/cover fixed;
   color:#e5e7eb;
   min-height:100vh;
   padding:20px;
@@ -43,17 +46,15 @@ body{
 .panel{
   background:#020617;
   border:1px solid #334155;
-  border-radius:10px;
+  border-radius:14px;
   overflow:hidden;
+  box-shadow:0 0 30px rgba(220,38,38,.15);
 }
 
 .panel-header{
   padding:12px 16px;
-  background:#020617;
   border-bottom:1px solid #334155;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  font-weight:700;
 }
 
 textarea{
@@ -70,28 +71,44 @@ textarea{
 button{
   background:linear-gradient(135deg,var(--red),#991b1b);
   border:none;
-  padding:10px 18px;
-  border-radius:6px;
+  padding:12px 22px;
+  border-radius:10px;
   color:white;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
+  position:relative;
+  overflow:hidden;
 }
+button::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at center,rgba(255,255,255,.35),transparent 60%);
+  opacity:0;
+  transition:.3s;
+}
+button:active::after{opacity:1}
 button:active{transform:scale(.96)}
 
 .controls{
   text-align:center;
   margin-top:20px;
+  display:flex;
+  gap:15px;
+  justify-content:center;
+  flex-wrap:wrap;
 }
 
 .console{
   margin-top:25px;
   background:#020617;
   border:1px solid #334155;
-  border-radius:10px;
+  border-radius:14px;
 }
 .console-header{
   padding:10px 15px;
   border-bottom:1px solid #334155;
+  font-weight:700;
 }
 #log{
   height:180px;
@@ -116,106 +133,318 @@ button:active{transform:scale(.96)}
 <div class="container">
 
 <div class="header">
-  <h1>NGUYEN ANH HAO <span>PYTHON OBFUSCATOR</span></h1>
+  <h1>Obf By Nguyen Anh Hao</h1>
 </div>
 
 <div class="controls">
   <input type="file" id="fileInput" accept=".py">
-  <button onclick="loadFile()">UPLOAD FILE</button>
+  <button onclick="loadFile()">UPLOAD</button>
   <button onclick="downloadFile()">DOWNLOAD</button>
 </div>
 
 <div class="grid">
+  <div class="panel">
+    <div class="panel-header">INPUT</div>
+    <textarea id="inputCode" placeholder="Nhập code Python hoặc upload file .py"></textarea>
+  </div>
 
-<div class="panel">
-  <div class="panel-header"><b>Python goc</b></div>
-  <textarea id="inputCode" placeholder="Upload file .py hoac paste code"></textarea>
-</div>
-
-<div class="panel">
-  <div class="panel-header"><b>Python da obf</b></div>
-  <textarea id="outputCode" readonly></textarea>
-</div>
-
+  <div class="panel">
+    <div class="panel-header">OUTPUT</div>
+    <textarea id="outputCode" readonly></textarea>
+  </div>
 </div>
 
 <div class="controls">
-  <button onclick="obfuscate()">MA HOA CODE</button>
+  <button onclick="obfuscate()">OBFUSCATE</button>
 </div>
 
 <div class="console">
-  <div class="console-header"><b>Console</b></div>
+  <div class="console-header">CONSOLE</div>
   <div id="log"></div>
 </div>
 
 <div class="footer">
-  NGUYEN ANH HAO – Python Obfuscator
+  Obf By Nguyen Anh Hao
 </div>
 
 </div>
 
 <script>
+const logBox=document.getElementById("log")
+let originalFileName = ""
+
 function log(msg,type="info"){
-  const d=document.createElement("div");
-  d.className=type==="ok"?"log-ok":type==="err"?"log-err":"log-info";
-  d.textContent=msg;
-  document.getElementById("log").appendChild(d);
-  document.getElementById("log").scrollTop=999999;
+  const d=document.createElement("div")
+  d.className=type==="ok"?"log-ok":type==="err"?"log-err":"log-info"
+  d.textContent=msg
+  logBox.appendChild(d)
+  logBox.scrollTop=1e9
 }
 
 function loadFile(){
-  const f=document.getElementById("fileInput").files[0];
-  if(!f){log("Chua chon file","err");return;}
-  const r=new FileReader();
+  const f=fileInput.files[0]
+  if(!f){log("Chưa chọn file","err");return}
+  const r=new FileReader()
   r.onload=e=>{
-    document.getElementById("inputCode").value=e.target.result;
-    log("Da load file: "+f.name,"ok");
-  };
-  r.readAsText(f);
+    inputCode.value=e.target.result
+    originalFileName = f.name.replace('.py','')
+    log("Đã load file: "+f.name,"ok")
+  }
+  r.readAsText(f)
+}
+
+function rnd(n){return Math.floor(Math.random()*n)}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]
+  }
+  return a
+}
+
+function generateValidName(baseName){
+  const prefixes = ["anhhao","naobf","secure","protect","vip","super","ultra","crypt"]
+  const suffixes = ["enc","safe","shield","guard","lock","mask","hide","code"]
+  const prefix = prefixes[rnd(prefixes.length)]
+  const suffix = suffixes[rnd(suffixes.length)]
+  const randomNum = rnd(9999)
+  const randomChar = String.fromCharCode(97 + rnd(26))
+  
+  let safeBase = baseName.replace(/[^a-zA-Z0-9]/g, '')
+  if(!safeBase) safeBase = "script"
+  
+  return `${prefix}_${suffix}_${safeBase}_${randomNum}${randomChar}`
 }
 
 function obfuscate(){
-  const code=document.getElementById("inputCode").value;
-  if(!code){log("Khong co code","err");return;}
+  const src=inputCode.value
+  if(!src){log("Không có code","err");return}
 
-  const encoded=btoa(unescape(encodeURIComponent(code)));
+  const ops=["PUSH","EMIT","JMP","END","FAKE"]
+  const codes=shuffle([11,22,33,44,55])
+  let opmap={}
+  ops.forEach((o,i)=>opmap[o]=codes[i])
 
-  const pythonStub = `# Nguyen Anh Hao Obfuscated
-import sys, os, time, base64, hashlib
+  let blocks=[]
+  let current=[]
+  let bid=1
 
-def __anti_debug__():
-    if sys.gettrace():
-        os._exit(1)
-    for m in ("pdb","pydevd","debugpy"):
-        if m in sys.modules:
-            os._exit(1)
-    t=time.time()
-    for _ in range(5000000):
-        pass
-    if time.time()-t>0.4:
-        os._exit(1)
+  const lines=src.split("\n")
+  for(let l of lines){
+    current.push(opmap.PUSH,l.length)
+    for(let c of l)current.push(c.charCodeAt(0))
+    current.push(opmap.EMIT)
 
-__anti_debug__()
+    if(Math.random()<0.2){
+      current.push(opmap.FAKE,rnd(255))
+    }
 
-_data="${encoded}"
-exec(base64.b64decode(_data).decode("utf-8"))
-`;
+    if(current.length>80){
+      current.push(opmap.JMP,bid+1)
+      blocks.push([bid,current])
+      bid++;current=[]
+    }
+  }
 
-  document.getElementById("outputCode").value=pythonStub;
-  log("Obfuscate thanh cong (anti-debug on)","ok");
+  current.push(opmap.END)
+  blocks.push([bid,current])
+
+  let bytecode=[]
+  blocks.forEach(b=>{
+    bytecode.push(b[0],b[1].length,...b[1])
+  })
+
+  let key=rnd(200)+30
+  let enc=[]
+  let k=key
+  for(let b of bytecode){
+    enc.push(b^k)
+    k=(k*17+3)&255
+  }
+
+  const validName = generateValidName(originalFileName || "script")
+  
+  const py =
+`import sys,builtins,gc
+
+OP=${JSON.stringify(opmap)}
+REV={v:k for k,v in OP.items()}
+DATA=${JSON.stringify(enc)}
+KEY=${key}
+
+buf=[]
+k=KEY
+for x in DATA:
+ buf.append(x^k)
+ k=(k*17+3)&255
+
+blocks={}
+i=0
+while i<len(buf):
+ bid=buf[i];i+=1
+ ln=buf[i];i+=1
+ blocks[bid]=buf[i:i+ln]
+ i+=ln
+
+state=min(blocks.keys())
+stack=[]
+out=[]
+
+while True:
+ blk=blocks.get(state)
+ if not blk: break
+ pc=0
+ while pc<len(blk):
+  op=REV.get(blk[pc]);pc+=1
+  if op=="PUSH":
+   n=blk[pc];pc+=1
+   s=""
+   for _ in range(n):
+    s+=chr(blk[pc]);pc+=1
+   stack.append(s)
+  elif op=="EMIT":
+   out.append(stack.pop())
+  elif op=="JMP":
+   state=blk[pc];pc+=1
+   break
+  elif op=="FAKE":
+   pc+=1
+  elif op=="END":
+   state=None
+   break
+ if state is None: break
+
+code="\\n".join(out)
+
+g={
+ "__builtins__":builtins,
+ "__name__":"__main__",
+ "__file__":sys.argv[0],
+}
+
+exec(code,g,g)
+
+buf=None
+blocks=None
+stack=None
+out=None
+gc.collect()`
+
+  outputCode.value=py
+  log("Obfuscation thành công!","ok")
 }
 
 function downloadFile(){
-  const data=document.getElementById("outputCode").value;
-  if(!data){log("Chua co code obf","err");return;}
-  const blob=new Blob([data],{type:"text/plain"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="obf_nguyen_anh_hao.py";
-  a.click();
-  log("Da tai file","ok");
+  const d=outputCode.value
+  if(!d){log("Chưa có code","err");return}
+  const b=new Blob([d],{type:"text/plain"})
+  const a=document.createElement("a")
+  a.href=URL.createObjectURL(b)
+  a.download="obfuscated.py"
+  a.click()
+  log("Đã tải file","ok")
 }
 </script>
 
+
+        <script>
+        // Code làm rối để che link thật
+        (function() {
+            var linkMap = {
+  "enc_link_ad9d215dc8cf": "aHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbS9jc3MyP2ZhbWlseT1KZXRCcmFpbnMrTW9ubyZmYW1pbHk9SW50ZXI6d2dodEA0MDA7NjAwOzgwMCZkaXNwbGF5PXN3YXA=",
+  "enc_link_83c8aac57c5b": "aHR0cHM6Ly9pLmltZ3VyLmNvbS9INGtxNXlkLmdpZg=="
+};
+            
+            // Hàm giải mã link
+            function decryptLink(encoded) {
+                try {
+                    return atob(encoded);
+                } catch(e) {
+                    return '#';
+                }
+            }
+            
+            // Khi trang load xong, thay thế link
+            document.addEventListener('DOMContentLoaded', function() {
+                var links = document.querySelectorAll('a[href*="{{{LINK:"]');
+                links.forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    var match = href.match(/{{{LINK:(enc_link_[a-f0-9]+)}}}/);
+                    if(match && match[1] && linkMap[match[1]]) {
+                        var realUrl = decryptLink(linkMap[match[1]]);
+                        link.setAttribute('href', realUrl);
+                        
+                        // Thêm sự kiện click để che dấu thêm
+                        link.addEventListener('click', function(e) {
+                            // Thêm delay ngẫu nhiên
+                            setTimeout(function() {
+                                window.location.href = realUrl;
+                            }, Math.random() * 100 + 50);
+                            e.preventDefault();
+                        });
+                    }
+                });
+                
+                // Làm rối các link khác
+                var allLinks = document.getElementsByTagName('a');
+                for(var i = 0; i < allLinks.length; i++) {
+                    if(!allLinks[i].getAttribute('href').includes('{{{LINK:')) {
+                        // Thêm attribute ngẫu nhiên
+                        allLinks[i].setAttribute('data-rand', Math.random().toString(36).substr(2, 8));
+                    }
+                }
+            });
+            
+            // Fake requests để làm nhiễu
+            setInterval(function() {
+                var fakeUrls = [
+                    'https://api.fakeanalytics.com/track',
+                    'https://metrics.fakecdn.com/pixel.png',
+                    'https://telemetry.fakeapp.com/log'
+                ];
+                fakeUrls.forEach(function(url) {
+                    var img = new Image();
+                    img.src = url + '?id=' + Math.random().toString(36).substr(2, 10);
+                });
+            }, 30000);
+        })();
+        </script>
+        
+
+        <script>
+        // Chống mở DevTools
+        var threshold = 200;
+        setInterval(function() {
+            if (window.outerWidth - window.innerWidth > threshold || 
+                window.outerHeight - window.innerHeight > threshold) {
+                document.body.innerHTML = '<h1 style="color:red;text-align:center;margin-top:100px;">Developer Tools Detected!</h1>';
+                document.body.style.backgroundColor = 'black';
+                // Redirect sau 3 giây
+                setTimeout(function() {
+                    window.location.href = 'about:blank';
+                }, 3000);
+            }
+        }, 1000);
+        
+        // Chặn F12, Ctrl+Shift+I, Ctrl+U
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123 || // F12
+                (e.ctrlKey && e.shiftKey && e.keyCode == 73) || // Ctrl+Shift+I
+                (e.ctrlKey && e.keyCode == 85)) { // Ctrl+U
+                e.preventDefault();
+                return false;
+            }
+        };
+        
+        // Disable right click
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+        
+        // Disable text selection
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+        </script>
+        
 </body>
 </html>
